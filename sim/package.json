@@ -1,0 +1,16 @@
+{
+  "name": "@lastdrop/sim",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Last Drop: детерминированная симуляция выдуманного мира автора поверх контрактов источника",
+  "exports": {
+    ".": "./src/generate.ts",
+    "./validate": "./src/validate.ts"
+  },
+  "scripts": {
+    "gen": "node src/cli.ts --out out",
+    "test": "node --test test/*.test.ts"
+  },
+  "engines": { "node": ">=22.18" }
+}
