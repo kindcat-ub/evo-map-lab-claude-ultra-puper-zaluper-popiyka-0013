@@ -36,7 +36,7 @@ const FIELDS: Record<Kind, readonly string[]> = {
   update: ['id', 'visibility', 'date', 'project', 'type', 'status', 'title', 'body'],
   research: ['id', 'visibility', 'project', 'date', 'question', 'hypothesis', 'experiment', 'observations', 'conclusion', 'unknowns'],
   artifact: ['id', 'visibility', 'ref', 'title', 'mime', 'project', 'research', 'date'],
-  chapter: ['id', 'visibility', 'number', 'title', 'date', 'pages'],
+  chapter: ['id', 'visibility', 'number', 'title', 'summary', 'date', 'pages'],
 };
 
 /** Структура одной записи, без ссылок на другие. */
@@ -86,7 +86,7 @@ export function validateEntity(e: unknown): Issue[] {
       break;
     case 'chapter': {
       check(Number.isInteger(o.number) && o.number >= 0, 'number', 'целое ≥ 0');
-      text('title', true); date('date');
+      text('title', true); text('summary'); date('date');
       if (!Array.isArray(o.pages)) { check(false, 'pages', 'массив страниц'); break; }
       o.pages.forEach((p: any, i: number) => {
         const pf = `pages[${i}]`;
@@ -97,9 +97,10 @@ export function validateEntity(e: unknown): Issue[] {
         p.panels.forEach((c: any, j: number) => {
           const cf = `${pf}.panels[${j}]`;
           if (!c || typeof c !== 'object') return check(false, cf, 'кадр не объект');
-          for (const k of Object.keys(c)) check(['region', 'image', 'animation', 'hotspots'].includes(k), `${cf}.${k}`, 'лишнее поле');
+          for (const k of Object.keys(c)) check(['region', 'image', 'animation', 'text', 'hotspots'].includes(k), `${cf}.${k}`, 'лишнее поле');
           if (c.image !== undefined) media(c.image, `${cf}.image`);
           if (c.animation !== undefined) media(c.animation, `${cf}.animation`);
+          if (c.text !== undefined) check(isText(c.text), `${cf}.text`, 'Text: { ru?, en? }');
           check(c.image !== undefined || c.region !== undefined, cf, 'кадр — это region на странице или своя image', 'rule');
           check(c.region === undefined || p.image !== undefined, `${cf}.region`, 'region без image страницы ни к чему не привязан', 'rule');
           if (c.region !== undefined) {

@@ -48,6 +48,7 @@ export interface ChapterCard {
   id: Id<'chapter'>;
   number: number;
   title: Text;
+  summary?: Text;
   date?: PartialDate;
   pages: number;
   cover?: MediaRef;
@@ -242,6 +243,7 @@ function byActivity(a: ProjectCard, b: ProjectCard): number {
 function chapterCard(c: Chapter): ChapterCard {
   const card: ChapterCard = { id: c.id, number: c.number, title: c.title, pages: c.pages.length };
   if (c.date) card.date = c.date;
+  if (c.summary) card.summary = c.summary;
   const cover = c.pages[0]?.image ?? c.pages[0]?.panels[0]?.image;
   if (cover) card.cover = cover;
   return card;

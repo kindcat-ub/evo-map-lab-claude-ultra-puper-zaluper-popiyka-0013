@@ -27,14 +27,14 @@ export function fixture(): Snapshot {
       { id: 'artifact:probe-photo', visibility: 'published', ref: 'media/probe-after-14-days.jpg', mime: 'image/jpeg',
         project: 'project:sill-greenhouse', research: 'research:probe-corrosion', date: '2025-05' },
       { id: 'artifact:rain-loop', visibility: 'published', ref: 'https://example.org/tracks/rain-loop', title: { en: 'Rain loop' } },
-      { id: 'chapter:one', visibility: 'published', number: 1, title: { ru: 'Базилик' }, date: '2025-03', pages: [
+      { id: 'chapter:one', visibility: 'published', number: 1, title: { ru: 'Базилик' }, summary: { ru: 'Неделя, за которую умер базилик' }, date: '2025-03', pages: [
         { image: 'manga/one/p1.webp', panels: [
           { region: { x: 0, y: 0, w: 1, h: 0.5 }, animation: 'manga/one/p1-c1.webm', hotspots: [
             { icon: 'leaf', target: 'project:sill-greenhouse' },
             { icon: 'music', target: 'artifact:rain-loop' },
             { icon: 'lock', target: 'project:secret-draft' },
           ] },
-          { region: { x: 0, y: 0.5, w: 1, h: 0.5 }, hotspots: [{ icon: 'link', target: 'https://example.org/basil' }] },
+          { region: { x: 0, y: 0.5, w: 1, h: 0.5 }, text: { ru: '— Опять засох.', en: '— Dead again.' }, hotspots: [{ icon: 'link', target: 'https://example.org/basil' }] },
         ] },
       ] },
       { id: 'chapter:two', visibility: 'published', number: 2, title: { ru: 'Крыша' }, pages: [{ panels: [{ image: 'manga/two/c1.webp' }] }] },

@@ -106,6 +106,8 @@ export interface Panel {
   image?: MediaRef;
   /** Анимация кадра по тапу. */
   animation?: MediaRef;
+  /** Текст кадра (реплики, подпись) на двух языках, если он не нарисован в картинке. */
+  text?: Text;
   hotspots?: Hotspot[];
 }
 
@@ -118,6 +120,7 @@ export interface Page {
 export interface Chapter extends Base<'chapter'> {
   number: number;
   title: Text;
+  summary?: Text;
   date?: PartialDate;
   pages: Page[];
 }
