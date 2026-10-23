@@ -1,0 +1,5 @@
+{
+  "extends": "../contracts/tsconfig.json",
+  "compilerOptions": { "noEmit": true, "types": ["node"], "typeRoots": ["../contracts/node_modules/@types"] },
+  "include": ["src", "test"]
+}
