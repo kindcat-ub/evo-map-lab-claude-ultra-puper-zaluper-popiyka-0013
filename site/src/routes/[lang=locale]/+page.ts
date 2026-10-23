@@ -7,9 +7,7 @@ export const load = async ({ fetch }) => {
 	const focus = await Promise.all(
 		view.focus.map(async (p) => {
 			const pv = await a.project(p.id.slice('project:'.length));
-			// Cover = first image artifact of the project; the contract has no cover field on purpose.
-			const cover = pv?.artifacts.find((a) => a.mime?.startsWith('image/'))?.ref;
-			return { card: p, next: pv?.openQuestions[0], current: pv?.current[0], cover };
+			return { card: p, next: pv?.openQuestions[0], current: pv?.current[0] };
 		})
 	);
 	return { view, focus };

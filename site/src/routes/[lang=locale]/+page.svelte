@@ -24,7 +24,7 @@
 	<div class="grid">
 		{#each data.focus as f (f.card.id)}
 			<a class="card focus" href={href(f.card.id, l)}>
-				{#if f.cover}<img class="cover" src={media(f.cover)} alt="" loading="lazy" />{/if}
+				{#if f.card.cover}<img class="cover" src={media(f.card.cover)} alt="" loading="lazy" />{/if}
 				<div class="row"><span class="title"><T text={f.card.title} lang={l} /></span> <Status status={f.card.status} lang={l} /></div>
 				{#if f.card.summary}<p class="small muted"><T text={f.card.summary} lang={l} /></p>{/if}
 				{#if f.current}<p class="small"><span class="muted">{f.current.date}</span> <T text={f.current.title} lang={l} /></p>{/if}

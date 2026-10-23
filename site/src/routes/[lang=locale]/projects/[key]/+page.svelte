@@ -65,6 +65,16 @@
 		</ul>
 	{/if}
 
+	{#if v.manga.length}
+		<h2>{ui('in_manga', l)}</h2>
+		<ul class="plain small">
+			{#each v.manga as m}
+				<!-- page and panel are zero-based in the contract; reader URLs are one-based. -->
+				<li><a href="{href(m.chapter, l)}{m.page + 1}/"><T text={m.title} lang={l} />, {ui('page', l).toLowerCase()} {m.page + 1}</a> <code>{m.target}</code></li>
+			{/each}
+		</ul>
+	{/if}
+
 	<h2>{ui('activity', l)}</h2>
 	<UpdateList items={v.updates} lang={l} showProject={false} />
 </main>
