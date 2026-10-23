@@ -1,0 +1,26 @@
+/* Mood from the earlier prototypes: near-black, paper cream, one red accent, serif for voice. */
+:root {
+	--bg: #121110;
+	--panel: #1a1917;
+	--fg: #e9e2d4;
+	--muted: #8e877b;
+	--line: #2e2c28;
+	--accent: #d9472b;
+	--serif: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+	color-scheme: dark;
+	font: 16px/1.55 system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); }
+a { color: inherit; text-decoration-color: var(--line); text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--accent); }
+main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font: 400 2rem/1.2 var(--serif); margin: 0 0 12px; }
+h2 { font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); margin: 40px 0 12px; }
+ul.plain { list-style: none; padding: 0; margin: 0; }
+ul.plain > li { padding: 10px 0; border-top: 1px solid var(--line); }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+code { font-size: 0.8em; color: var(--muted); }
