@@ -42,6 +42,8 @@ export interface ProjectCard {
   status: ProjectStatus;
   lastActivity?: PartialDate;
   openQuestions: number;
+  /** Самое свежее изображение среди artifact проекта (mime image/*). Вычисляется. */
+  cover?: MediaRef;
 }
 
 export interface ChapterCard {
@@ -84,8 +86,22 @@ export interface ProjectView {
   updates: UpdateItem[];
   research: Research[];
   artifacts: Artifact[];
-  /** Связи наружу: другие проекты, события жизни, манга. */
+  /** Связи наружу: другие проекты, события жизни. */
   links: LinkItem[];
+  /** Где проект или его объекты появляются в манге: хотспоты, которые на них указывают. */
+  manga: MangaMention[];
+}
+
+export interface MangaMention {
+  chapter: Id<'chapter'>;
+  number: number;
+  title: Text;
+  /** Индексы с нуля. */
+  page: number;
+  panel: number;
+  /** На что указывает хотспот: сам проект или его update/research/artifact. */
+  target: Id;
+  icon: string;
 }
 
 export interface ActivityQuery {
@@ -208,6 +224,8 @@ class Index {
     if (p.started) c.started = p.started;
     const last = this.lastActivity(p.id);
     if (last) c.lastActivity = last;
+    const cover = this.artifacts.filter((a) => a.project === p.id && a.mime?.startsWith('image/')).sort(newestFirst)[0];
+    if (cover) c.cover = cover.ref;
     return c;
   }
   card(e: Entity): Card {
@@ -297,7 +315,13 @@ export function project(s: Snapshot, id: Id<'project'>, opts: { current?: number
     research: ix.research.filter(own).sort(newestFirst),
     artifacts: ix.artifacts.filter(own).sort(newestFirst),
     links,
+    manga: [],
   };
+  for (const c of ix.chapters) c.pages.forEach((pg, pi) => pg.panels.forEach((x, xi) => (x.hotspots ?? []).forEach((h) => {
+    if (isId(h.target) && local.has(h.target)) {
+      view.manga.push({ chapter: c.id, number: c.number, title: c.title, page: pi, panel: xi, target: h.target, icon: h.icon });
+    }
+  })));
   const last = ix.lastActivity(id);
   if (last) view.lastActivity = last;
   const q = p.question ? ix.byId.get(p.question) : undefined;

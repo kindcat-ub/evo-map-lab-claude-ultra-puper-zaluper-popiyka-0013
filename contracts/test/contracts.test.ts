@@ -11,6 +11,8 @@ import { FsStore } from '../src/fs-store.ts';
 import { exportStatic, readRoute } from '../src/server.ts';
 import { fixture } from './fixture.ts';
 
+const h0 = (s: Parameters<typeof home>[0]) => home(s);
+
 test('фикстура валидна', () => {
   assert.deepEqual(validateSnapshot(fixture()), []);
 });
@@ -56,6 +58,8 @@ test('текущее вычисляется: статус из последне�
   assert.equal(p.lastActivity, '2025-07-01');
   assert.equal(p.question?.open, false);
   assert.deepEqual(p.current.map((u) => u.id)[0], 'update:2025-07-01-pause');
+  assert.deepEqual(p.manga.map((m) => `${m.chapter} ${m.page}/${m.panel} ${m.target}`), ['chapter:one 0/0 project:sill-greenhouse']);
+  assert.equal(h0(pub).projects.find((x) => x.id === 'project:sill-greenhouse')?.cover, 'media/probe-after-14-days.jpg');
   assert.deepEqual(p.links.map((l) => `${l.direction} ${l.relation.type} ${l.other.id}`).sort(), ['in derived_from project:rooftop-weather']);
   const h = home(pub);
   assert.deepEqual(h.focus.map((x) => x.id), ['project:rooftop-weather']);
