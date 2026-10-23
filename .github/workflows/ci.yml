@@ -1,0 +1,93 @@
+name: CI
+
+# Каждый пакет проверяется, только если он есть в коммите.
+# Пока стопка contracts → sim → site не смёржена, отсутствующие джобы просто пропускаются.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      contracts: ${{ steps.pkgs.outputs.contracts }}
+      sim: ${{ steps.pkgs.outputs.sim }}
+      site: ${{ steps.pkgs.outputs.site }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: pkgs
+        run: |
+          for p in contracts sim site; do
+            if [ -f "$p/package.json" ]; then echo "$p=true"; else echo "$p=false"; fi >> "$GITHUB_OUTPUT"
+          done
+          cat "$GITHUB_OUTPUT"
+
+  contracts:
+    needs: detect
+    if: needs.detect.outputs.contracts == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: contracts/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  sim:
+    needs: detect
+    # sim берёт типы и tsc из contracts (tsconfig extends ../contracts), без contracts его не проверить.
+    if: needs.detect.outputs.sim == 'true' && needs.detect.outputs.contracts == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: contracts/package-lock.json
+      - run: npm ci
+        working-directory: contracts
+      - name: typecheck
+        run: ../contracts/node_modules/.bin/tsc -p tsconfig.json
+        working-directory: sim
+      - run: npm test
+        working-directory: sim
+
+  site:
+    needs: detect
+    if: needs.detect.outputs.site == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run build

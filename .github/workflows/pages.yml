@@ -1,0 +1,62 @@
+name: Pages
+
+# Статическая сборка site/ из main → GitHub Pages.
+# Один раз включить: Settings → Pages → Build and deployment → Source: GitHub Actions.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: has
+        run: |
+          if [ -f site/package.json ]; then echo "site=true"; else echo "site=false"; echo "::notice::site/ ещё нет в main, деплоить нечего"; fi >> "$GITHUB_OUTPUT"
+      - if: steps.has.outputs.site == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - if: steps.has.outputs.site == 'true'
+        id: pages
+        uses: actions/configure-pages@v5
+      - if: steps.has.outputs.site == 'true'
+        working-directory: site
+        run: |
+          npm ci
+          npm run build
+        env:
+          # Проектный Pages живёт под /<repo>/. Сайт подхватит это, когда svelte.config.js
+          # начнёт читать BASE_PATH в kit.paths.base; до тех пор ссылки считаются от корня домена.
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+      - if: steps.has.outputs.site == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/build
+    outputs:
+      site: ${{ steps.has.outputs.site }}
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.site == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
