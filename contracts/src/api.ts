@@ -4,6 +4,7 @@
 // Фронт знает только эти пути и типы ответов, хранилище за ними не видно.
 
 import type { Card, ActivityView, ChapterCard, ChapterView, GraphView, HomeView, ProjectCard, ProjectView } from './projections.ts';
+import type { EvolutionView } from './evolution.ts';
 import type { Entity, Id, Snapshot } from './model.ts';
 import type { Issue } from './validate.ts';
 import type { WriteRequest, WriteResult } from './store.ts';
@@ -28,6 +29,8 @@ export interface ReadRoutes {
   'GET /graph': GraphView;
   /** Граф одного проекта и его связей наружу (один шаг). */
   'GET /graph/:key': GraphView;
+  /** Evolution Map проекта: вехи, направления со статусами, события, линзы. Без геометрии. */
+  'GET /evolution/:key': EvolutionView;
 }
 
 /**
@@ -61,6 +64,7 @@ export function staticPaths(s: Snapshot): string[] {
     '/home.json', '/projects.json', '/activity.json', '/manga.json', '/graph.json',
     ...keys('project').map((k) => `/projects/${k}.json`),
     ...keys('project').map((k) => `/graph/${k}.json`),
+    ...keys('project').map((k) => `/evolution/${k}.json`),
     ...keys('chapter').map((k) => `/manga/${k}.json`),
     ...s.entities.map((e) => `/resolve/${(e.id as Id).replace(':', '/')}.json`),
   ];

@@ -29,7 +29,7 @@ export interface Card {
 
 export interface UpdateItem extends Update {
   projectTitle?: Text;
-  /** Только у question: нет ни одного answers. */
+  /** Только у question и problem: нет ни одного answers. */
   open?: boolean;
 }
 
@@ -165,6 +165,10 @@ export function publicView(s: Snapshot): Snapshot {
     if (is(e, 'project') && e.question && !visible(e.question)) {
       const { question: _, ...rest } = e;
       entities.push(rest as Project);
+    } else if (is(e, 'update') && e.branch && !visible(e.branch)) {
+      // Скрытое направление: событие остаётся на основной линии.
+      const { branch: _, ...rest } = e;
+      entities.push(rest as Update);
     } else if (is(e, 'chapter')) {
       entities.push({
         ...e,
@@ -205,11 +209,12 @@ class Index {
     const p = u.project ? this.byId.get(u.project) as Project | undefined : undefined;
     const it: UpdateItem = { ...u };
     if (p) it.projectTitle = p.title;
-    if (u.type === 'question') it.open = !this.answered.has(u.id);
+    if (u.type === 'question' || u.type === 'problem') it.open = !this.answered.has(u.id);
     return it;
   }
   status(p: Id<'project'>): ProjectStatus {
-    return this.updates.find((u) => u.project === p && u.status)?.status ?? 'active';
+    // Статус направления (branch и его события) на статус проекта не влияет.
+    return this.updates.find((u) => u.project === p && u.status && !u.branch && u.type !== 'branch')?.status ?? 'active';
   }
   lastActivity(p: Id<'project'>): PartialDate | undefined {
     return this.updates.find((u) => u.project === p)?.date;

@@ -8,6 +8,7 @@ import { type Id, type Snapshot, type UpdateType, isId } from './model.ts';
 import { activity, chapter, chapterList, graph, home, project, projectList, publicView, resolve } from './projections.ts';
 import { type BlobStore, type SourceStore, type WriteRequest, ConflictError, write } from './store.ts';
 import { ValidationError } from './validate.ts';
+import { evolution } from './evolution.ts';
 import { API_PREFIX, type ApiError, staticPaths } from './api.ts';
 
 export interface Reply { status: number; body: unknown }
@@ -39,6 +40,8 @@ export function readRoute(pub: Snapshot, path: string, query: URLSearchParams = 
       const id = `${seg[1]}:${seg[2]}`;
       return seg.length === 3 && isId(id) ? ok(resolve(pub, id)) : notFound(path);
     }
+    case 'evolution':
+      return seg.length === 2 ? ok(evolution(pub, `project:${seg[1]}`)) : notFound(path);
     case 'graph': {
       if (seg.length === 1) return ok(graph(pub));
       const id = `project:${seg[1]}`;

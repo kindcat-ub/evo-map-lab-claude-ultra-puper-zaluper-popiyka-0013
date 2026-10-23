@@ -1,18 +1,19 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { base } from '$app/paths';
 	import { LANGS, ui, type UiKey } from '$lib/i18n/ui';
 
 	let { data, children } = $props();
 	const sections: UiKey[] = ['projects', 'activity', 'evolution', 'manga', 'about'];
 	// Same object, other representation: only the language segment changes.
-	const swap = (l: string) => page.url.pathname.replace(/^\/[^/]+/, `/${l}`) + page.url.hash;
+	const swap = (l: string) => base + page.url.pathname.slice(base.length).replace(/^\/[^/]+/, `/${l}`) + page.url.hash;
 </script>
 
 <header>
-	<a class="brand" href="/{data.lang}/">LAST DROP<span class="dot"></span></a>
+	<a class="brand" href="{base}/{data.lang}/">LAST DROP<span class="dot"></span></a>
 	<nav>
 		{#each sections as s}
-			<a href="/{data.lang}/{s}/" aria-current={page.url.pathname.startsWith(`/${data.lang}/${s}/`) ? 'page' : undefined}>{ui(s, data.lang)}</a>
+			<a href="{base}/{data.lang}/{s}/" aria-current={page.url.pathname.startsWith(`${base}/${data.lang}/${s}/`) ? 'page' : undefined}>{ui(s, data.lang)}</a>
 		{/each}
 	</nav>
 	<span class="lang">

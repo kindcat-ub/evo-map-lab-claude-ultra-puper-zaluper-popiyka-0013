@@ -33,7 +33,7 @@ type Check = (cond: boolean, field: string, message: string, code?: Issue['code'
 
 const FIELDS: Record<Kind, readonly string[]> = {
   project: ['id', 'visibility', 'title', 'summary', 'body', 'started', 'question', 'tags'],
-  update: ['id', 'visibility', 'date', 'project', 'type', 'status', 'title', 'body'],
+  update: ['id', 'visibility', 'date', 'project', 'type', 'branch', 'status', 'title', 'body'],
   research: ['id', 'visibility', 'project', 'date', 'question', 'hypothesis', 'experiment', 'observations', 'conclusion', 'unknowns'],
   artifact: ['id', 'visibility', 'ref', 'title', 'mime', 'project', 'research', 'date'],
   chapter: ['id', 'visibility', 'number', 'title', 'summary', 'date', 'pages'],
@@ -75,6 +75,9 @@ export function validateEntity(e: unknown): Issue[] {
       check(UPDATE_TYPES.includes(o.type), 'type', UPDATE_TYPES.join(' | '));
       if (o.status !== undefined) check(PROJECT_STATUSES.includes(o.status), 'status', PROJECT_STATUSES.join(' | '));
       if (o.status !== undefined) check(o.project !== undefined, 'status', 'status без project не к чему применить', 'rule');
+      ref('branch', 'update');
+      if (o.branch !== undefined) check(o.project !== undefined, 'branch', 'направление бывает только у события проекта', 'rule');
+      if (o.branch !== undefined) check(o.type !== 'branch', 'branch', 'направление не лежит внутри направления: точку рождения задаёт derived_from', 'rule');
       break;
     case 'research':
       ref('project', 'project'); date('date'); text('question', true);
@@ -165,7 +168,12 @@ export function validateSnapshot(s: Snapshot): Issue[] {
   };
   for (const e of byId.values()) {
     const o = e as Record<string, any>;
-    for (const f of ['project', 'question', 'research']) exists(e.id, f, o[f]);
+    for (const f of ['project', 'question', 'research', 'branch']) exists(e.id, f, o[f]);
+    if (kindOf(e.id) === 'update' && o.branch) {
+      const b = byId.get(o.branch) as Record<string, any> | undefined;
+      if (b && b.type !== 'branch') issues.push({ at: e.id, field: 'branch', code: 'rule', message: 'branch ссылается на Update с type branch' });
+      if (b && b.project !== o.project) issues.push({ at: e.id, field: 'branch', code: 'rule', message: 'направление из другого проекта' });
+    }
     if (kindOf(e.id) === 'project' && o.question) {
       const q = byId.get(o.question) as Record<string, any> | undefined;
       if (q && q.type !== 'question') issues.push({ at: e.id, field: 'question', code: 'rule', message: 'исходный вопрос должен быть Update с type question' });
@@ -187,8 +195,8 @@ export function validateSnapshot(s: Snapshot): Issue[] {
     exists(key, 'to', r.to);
     const from = byId.get(r.from) as Record<string, any> | undefined;
     const to = byId.get(r.to) as Record<string, any> | undefined;
-    if (r.type === 'answers' && to && to.type !== 'question') {
-      issues.push({ at: key, field: 'to', code: 'rule', message: 'answers ведёт только в Update с type question' });
+    if (r.type === 'answers' && to && to.type !== 'question' && to.type !== 'problem') {
+      issues.push({ at: key, field: 'to', code: 'rule', message: 'answers ведёт только в Update с type question или problem' });
     }
     if (r.type === 'supersedes' && from && to && kindOf(r.from) !== kindOf(r.to)) {
       issues.push({ at: key, field: 'to', code: 'rule', message: 'supersedes заменяет объект того же вида' });

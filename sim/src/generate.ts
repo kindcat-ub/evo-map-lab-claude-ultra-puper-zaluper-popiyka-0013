@@ -38,24 +38,29 @@ type Box = [x: number, y: number, w: number, h: number];
 // UpdateType + status only at the very end.
 type Beat =
   | "start" | "progress" | "milestone" | "decision" | "discovery" | "question" | "experiment"
-  | "deadend" | "breakage" | "pause" | "resume" | "release" | "merge" | "abandon" | "life";
+  | "deadend" | "breakage" | "pause" | "resume" | "release" | "merge" | "abandon" | "life"
+  // A direction of work (one per part of the project, reopened after it dies or closes).
+  | "branch" | "branch-done" | "branch-pause";
 
 const BEAT_TO_UPDATE: Record<Beat, { type: UpdateType; status?: ProjectStatus }> = {
-  start: { type: "note", status: "active" },
+  start: { type: "milestone", status: "active" }, // the first state on the map's spine
   progress: { type: "note" },
   milestone: { type: "milestone" },
   decision: { type: "decision" },
   discovery: { type: "discovery" },
   question: { type: "question" },
-  experiment: { type: "note" },
+  experiment: { type: "experiment" },
   deadend: { type: "deadend" },
-  breakage: { type: "note" },
+  breakage: { type: "problem" },
   pause: { type: "note", status: "paused" },
   resume: { type: "note", status: "active" },
   release: { type: "milestone" },
   merge: { type: "note", status: "done" },
   abandon: { type: "note", status: "dropped" },
   life: { type: "note" },
+  branch: { type: "branch" },
+  "branch-done": { type: "note", status: "done" },
+  "branch-pause": { type: "note", status: "paused" },
 };
 
 // ---------- drafts: objects before ids exist ----------
@@ -82,6 +87,8 @@ interface UpdateDraft {
   summary: Text;
   part?: string | undefined; // RU part name, used by the arc logic only
   option?: Pair | undefined;
+  branch?: UpdateDraft | undefined; // the direction root; none = the project's main line
+  status?: ProjectStatus | undefined; // overrides BEAT_TO_UPDATE (a dead end that kills its direction)
   id?: Id;
 }
 
@@ -512,6 +519,124 @@ export function generate(opts: GenerateOptions): GenerateResult {
     rel(mergeDst, mergeSrc, "derived_from"); // contract rule: merge = status done + dst derived_from src
   }
 
+  // ---------- directions ----------
+  // Every part a project works on is a direction: it is born from an earlier point,
+  // collects that part's events, and ends merged into a milestone, dead after a dead end,
+  // paused, or still active. Reopening a part after that starts a new direction.
+  const MAIN: Beat[] = ["start", "milestone", "release", "pause", "resume", "merge", "abandon", "life"];
+  for (const p of projects) {
+    const r = rWorld.fork(`lines/${p.slug}`);
+    const seqOf = new Map(updates.map((u, i) => [u, i]));
+    const own = updates.filter((u) => u.project === p).sort((x, y) => x.day - y.day || seqOf.get(x)! - seqOf.get(y)!);
+    interface Line { root: UpdateDraft; last: UpdateDraft; n: number; closed: boolean; part: Part }
+    const lines = new Map<string, Line>();
+    const all: Line[] = [];
+    const reopened = new Map<string, number>();
+    const before = (u: UpdateDraft, d: UpdateDraft) => updates.splice(updates.indexOf(u), 0, d);
+    let lastMain: UpdateDraft | undefined;
+    let lastAny: UpdateDraft | undefined;
+    const close = (line: Line, at: UpdateDraft | undefined, beat: "branch-done" | "branch-pause", day: number) => {
+      const pn = line.part.name;
+      const d: UpdateDraft = {
+        project: p, type: beat, day, precision: "day", branch: line.root,
+        title: beat === "branch-done" ? { ru: `Узел ${q(pn[0])} готов`, en: `The ${pn[1]} is done` } : { ru: `Узел ${q(pn[0])} отложен`, en: `The ${pn[1]} is on hold` },
+        summary: beat === "branch-done"
+          ? { ru: `Направление закрыто, результат уходит в основную линию.`, en: `Direction closed, the result goes into the main line.` }
+          : { ru: `До узла ${q(pn[0])} руки не доходят. Не брошен, просто стоит.`, en: `No hands for the ${pn[1]}. Not dropped, just standing still.` },
+      };
+      if (at) before(at, d); else updates.push(d);
+      rel(d, line.last, "caused_by");
+      line.closed = true;
+      line.last = d;
+      return d;
+    };
+    for (const u of own) {
+      const part = u.part ? p.arch.parts.find((x) => x.name[0] === u.part) : undefined;
+      if (MAIN.includes(u.type) || !part) {
+        if ((u.type === "milestone" || u.type === "release")) {
+          const ready = all.filter((x) => !x.closed && x.n >= 2 && x.last.day <= u.day);
+          if (ready.length && r.chance(0.75)) {
+            const line = r.pick(ready);
+            const done = close(line, u, "branch-done", Math.max(line.last.day, u.day - r.int(0, 2)));
+            rel(u, done, "caused_by");
+          }
+        }
+        if (u.type !== "life") lastMain = u;
+        lastAny = u;
+        continue;
+      }
+      let line = lines.get(part.name[0]);
+      if (!line || line.closed) {
+        const n = (reopened.get(part.name[0]) ?? 0) + 1;
+        reopened.set(part.name[0], n);
+        const pn = part.name;
+        const root: UpdateDraft = {
+          project: p, type: "branch", day: u.day, precision: "day", part: pn[0],
+          title: n === 1 ? { ru: cap(pn[0]), en: cap(pn[1]) } : { ru: `${cap(pn[0])}, заход ${n}`, en: `${cap(pn[1])}, take ${n}` },
+          summary: n === 1
+            ? { ru: `Отдельное направление: всё, что решается и ломается в узле ${q(pn[0])}.`, en: `A direction of its own: everything decided and broken in the ${pn[1]}.` }
+            : { ru: `Узел ${q(pn[0])} открыт заново после того, как прошлый заход закрылся.`, en: `The ${pn[1]} reopened after the previous take closed.` },
+        };
+        // Born from the previous take's end, otherwise mostly from the main line, sometimes from another direction.
+        const from = line ? line.last : (lastAny && lastAny !== lastMain && r.chance(0.3) ? lastAny : lastMain);
+        before(u, root);
+        if (from) rel(root, from, "derived_from");
+        line = { root, last: root, n: 0, closed: false, part };
+        lines.set(pn[0], line);
+        all.push(line);
+      }
+      u.branch = line.root;
+      line.last = u;
+      line.n++;
+      lastAny = u;
+      if (u.type === "deadend" && (p === donor || r.chance(0.5))) {
+        u.status = "dropped";
+        line.closed = true;
+      }
+    }
+    const end = Math.max(...own.map((u) => u.day));
+    // The donor always comes back to the part its dead end closed: a new take born from that dead end.
+    const killed = all.filter((x) => x.last.status === "dropped").at(-1);
+    if (p === donor && killed && !all.some((x) => x !== killed && x.part === killed.part && x.root.day >= killed.last.day)) {
+      const pn = killed.part.name;
+      const day = Math.min(killed.last.day + r.int(3, 10), end);
+      const root: UpdateDraft = {
+        project: p, type: "branch", day, precision: "day", part: pn[0],
+        title: { ru: `${cap(pn[0])}, заход 2`, en: `${cap(pn[1])}, take 2` },
+        summary: { ru: `Узел ${q(pn[0])} открыт заново после тупика.`, en: `The ${pn[1]} reopened after the dead end.` },
+      };
+      const ask: UpdateDraft = {
+        project: p, type: "question", day, precision: "day", part: pn[0], branch: root,
+        title: { ru: `Как подступиться к узлу ${q(pn[0])} иначе?`, en: `How else to approach the ${pn[1]}?` },
+        summary: { ru: "Прошлый путь закрыт. Нового пока нет.", en: "The old path is closed. No new one yet." },
+      };
+      const next = own.find((u) => u.day > day);
+      if (next) { before(next, root); before(next, ask); } else updates.push(root, ask);
+      rel(root, killed.last, "derived_from");
+      rel(ask, killed.last, "caused_by");
+      all.push({ root, last: ask, n: 1, closed: false, part: killed.part });
+    }
+    const open = () => all.filter((x) => !x.closed && x.n > 0);
+    // Every project that keeps going shows at least one direction folded back into a milestone.
+    if (p !== abandoned && p !== mergeSrc && !all.some((x) => x.last.type === "branch-done") && open().length) {
+      const line = open().sort((x, y) => y.n - x.n || x.root.day - y.root.day)[0];
+      const day = line.last.day + r.int(1, 3);
+      const ms = r.pick(p.arch.milestones);
+      const m: UpdateDraft = { project: p, type: "milestone", day: day + 1, precision: "day", title: l(ms), summary: { ru: `Веха: ${ms[0]}.`, en: `Milestone: ${ms[1]}.` } };
+      const after = own.find((u) => u.day > day + 1);
+      if (after) before(after, m); else updates.push(m);
+      rel(m, close(line, m, "branch-done", day), "caused_by");
+    }
+    // Stale directions are paused explicitly, the freshest one stays active.
+    const stale = open().sort((x, y) => x.last.day - y.last.day).slice(0, -1);
+    stale.forEach((line, k) => {
+      const old = line.last.day < end - (p.end - p.start) * 0.3;
+      if (!(p === recipient ? k === 0 : old && r.chance(0.5))) return;
+      const day = Math.min(line.last.day + r.int(5, 20), end);
+      close(line, own.find((u) => u.day > day), "branch-pause", day);
+    });
+  }
+
   // ---------- ordering, fuzzy dates, ids ----------
   const seq = new Map(updates.map((u, i) => [u, i]));
   updates.sort((x, y) => x.day - y.day || seq.get(x)! - seq.get(y)!);
@@ -667,7 +792,8 @@ export function generate(opts: GenerateOptions): GenerateResult {
         date: dateOf(u.day, u.precision),
         ...(u.project ? { project: projectId(u.project) as Id<"project"> } : {}),
         type: m.type,
-        ...(m.status ? { status: m.status } : {}),
+        ...(u.branch ? { branch: u.branch.id as Id<"update"> } : {}),
+        ...(u.status ?? m.status ? { status: u.status ?? m.status } : {}),
         title: u.title, body: u.summary,
       };
     }),

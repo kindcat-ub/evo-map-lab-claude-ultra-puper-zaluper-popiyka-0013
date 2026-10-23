@@ -44,6 +44,7 @@ export function httpApi(base: string, opts: { static?: boolean; fetch?: typeof f
 		chapters: () => must('/manga'),
 		chapter: (key) => get(`/manga/${enc(key)}`),
 		resolve: (id) => get(`/resolve/${id.split(':').map(enc).join('/')}`),
-		graph: (scope) => must(scope ? `/graph/${enc(scope)}` : '/graph')
+		graph: (scope) => must(scope ? `/graph/${enc(scope)}` : '/graph'),
+		evolution: (key) => get(`/evolution/${enc(key)}`)
 	};
 }

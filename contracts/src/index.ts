@@ -4,4 +4,5 @@ export * from './model.ts';
 export * from './validate.ts';
 export * from './store.ts';
 export * from './projections.ts';
+export * from './evolution.ts';
 export * from './api.ts';
