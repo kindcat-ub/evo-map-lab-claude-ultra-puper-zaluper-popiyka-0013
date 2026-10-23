@@ -1,5 +1,5 @@
 import type {
-	ActivityQuery, ActivityView, Card, ChapterCard, ChapterView, GraphView, HomeView, Id, ProjectCard, ProjectView
+	ActivityQuery, ActivityView, Card, ChapterCard, ChapterView, EvolutionView, GraphView, HomeView, Id, ProjectCard, ProjectView
 } from '$contracts';
 
 /**
@@ -16,4 +16,5 @@ export interface SiteApi {
 	chapter(key: string): Promise<ChapterView | undefined>;
 	resolve(id: Id): Promise<Card | undefined>;
 	graph(scope?: string): Promise<GraphView>;
+	evolution(key: string): Promise<EvolutionView | undefined>;
 }

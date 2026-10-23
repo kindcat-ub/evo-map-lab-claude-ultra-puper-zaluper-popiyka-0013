@@ -25,7 +25,6 @@ const UI = {
 	prev: ['Назад', 'Previous'],
 	next: ['Дальше', 'Next'],
 	not_published: ['Ещё не опубликовано.', 'Not published yet.'],
-	evolution_status: ['Движок карты эволюции в разработке. Ниже то, что он получит из того же источника.', 'The Evolution Map engine is in development. Below is what it will receive from the same source.'],
 	release: ['Выпуск', 'Release'],
 	'status.active': ['идёт', 'active'],
 	'status.paused': ['на паузе', 'paused'],
@@ -37,6 +36,9 @@ const UI = {
 	'type.discovery': ['открытие', 'discovery'],
 	'type.deadend': ['тупик', 'dead end'],
 	'type.milestone': ['веха', 'milestone'],
+	'type.branch': ['направление', 'direction'],
+	'type.problem': ['проблема', 'problem'],
+	'type.experiment': ['эксперимент', 'experiment'],
 	artifacts: ['Артефакты', 'Artifacts'],
 	latest_chapter: ['Свежая глава', 'Latest chapter'],
 	more: ['Ещё', 'More'],
@@ -49,8 +51,6 @@ const UI = {
 	'way.projects': ['Что существует: статусы, вопросы, материалы.', 'What exists: status, questions, materials.'],
 	all_activity: ['Вся активность', 'All activity'],
 	read: ['Читать', 'Read'],
-	nodes: ['узлов', 'nodes'],
-	edges: ['связей', 'edges'],
 	open_questions: ['Открытые вопросы', 'Open questions']
 } satisfies Record<string, [string, string]>;
 

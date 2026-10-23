@@ -1,4 +1,5 @@
 import { env } from '$env/dynamic/public';
+import { base } from '$app/paths';
 import { mediaUrl, type MediaRef } from '$contracts';
 import type { SiteApi } from './api';
 import { httpApi } from './adapters/http';
@@ -21,7 +22,7 @@ export function api(fetcher: typeof fetch = fetch): SiteApi {
 
 /** MediaRef → address. Keys resolve against PUBLIC_MEDIA_BASE; URLs (data: included) pass through. */
 export function media(ref: MediaRef): string {
-	return /^(https?:|data:)/.test(ref) ? ref : mediaUrl(ref, env.PUBLIC_MEDIA_BASE || (source() === 'sim' ? '/sim' : '/media'));
+	return /^(https?:|data:)/.test(ref) ? ref : mediaUrl(ref, env.PUBLIC_MEDIA_BASE || `${base}${source() === 'sim' ? '/sim' : '/media'}`);
 }
 
 export type { SiteApi } from './api';

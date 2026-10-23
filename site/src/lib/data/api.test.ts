@@ -63,6 +63,7 @@ describe('storage is swappable', () => {
 		expect(await remote.project(key)).toEqual(await local.project(key));
 		const ch = keyOf((await local.chapters())[0].id);
 		expect(await remote.chapter(ch)).toEqual(await local.chapter(ch));
+		expect(await remote.evolution(key)).toEqual(await local.evolution(key));
 		expect(await remote.project('no-such-project')).toBeUndefined();
 	});
 });

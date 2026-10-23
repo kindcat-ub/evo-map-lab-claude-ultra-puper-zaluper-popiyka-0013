@@ -1,5 +1,5 @@
 import {
-	activity, chapter, chapterList, graph, home, project, projectList, publicView, resolve,
+	activity, chapter, chapterList, evolution, graph, home, project, projectList, publicView, resolve,
 	type Id, type Snapshot
 } from '$contracts';
 import type { SiteApi } from '../api';
@@ -15,6 +15,7 @@ export function snapshotApi(source: Snapshot): SiteApi {
 		chapters: async () => chapterList(pub),
 		chapter: async (key) => chapter(pub, `chapter:${key}`),
 		resolve: async (id: Id) => resolve(pub, id),
-		graph: async (scope) => graph(pub, scope ? `project:${scope}` : undefined)
+		graph: async (scope) => graph(pub, scope ? `project:${scope}` : undefined),
+		evolution: async (key) => evolution(pub, `project:${key}`)
 	};
 }
