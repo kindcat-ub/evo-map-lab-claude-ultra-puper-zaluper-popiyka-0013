@@ -48,8 +48,17 @@ export interface Project extends Base<'project'> {
   // Статуса и current_state тут нет намеренно: они вычисляются из Update.
 }
 
-export type UpdateType = 'note' | 'question' | 'decision' | 'discovery' | 'deadend' | 'milestone';
-export const UPDATE_TYPES: readonly UpdateType[] = ['note', 'question', 'decision', 'discovery', 'deadend', 'milestone'];
+/**
+ * milestone — качественное состояние проекта (веха на позвоночнике карты).
+ * branch — открыто направление работы; title = имя направления, точка рождения = связь derived_from.
+ * problem — то, что мешает; открыта, пока на неё не ведёт answers.
+ */
+export type UpdateType =
+  | 'note' | 'question' | 'decision' | 'discovery' | 'deadend' | 'milestone'
+  | 'branch' | 'problem' | 'experiment';
+export const UPDATE_TYPES: readonly UpdateType[] = [
+  'note', 'question', 'decision', 'discovery', 'deadend', 'milestone', 'branch', 'problem', 'experiment',
+];
 
 export type ProjectStatus = 'active' | 'paused' | 'done' | 'dropped';
 export const PROJECT_STATUSES: readonly ProjectStatus[] = ['active', 'paused', 'done', 'dropped'];
@@ -62,7 +71,15 @@ export interface Update extends Base<'update'> {
   date: PartialDate;
   project?: Id<'project'>;
   type: UpdateType;
-  /** Статус проекта после этого события. Последний по дате задаёт текущий. */
+  /**
+   * Направление, в котором случилось событие: id Update с type branch того же проекта.
+   * Нет поля — событие на основной линии проекта.
+   */
+  branch?: Id<'update'>;
+  /**
+   * Статус после этого события. Последний по дате задаёт текущий.
+   * У branch и у событий с полем branch это статус направления, иначе — проекта.
+   */
   status?: ProjectStatus;
   title: Text;
   body?: Text;

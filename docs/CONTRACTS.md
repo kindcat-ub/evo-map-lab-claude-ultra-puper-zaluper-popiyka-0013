@@ -37,13 +37,20 @@
 
 ### Update
 
-`type`: `note | question | decision | discovery | deadend | milestone`.
+`type`: `note | question | decision | discovery | deadend | milestone | branch | problem | experiment`.
+
+- `milestone` — качественное состояние проекта. Вехи без `branch` образуют позвоночник Evolution Map.
+- `branch` — открыто направление работы, `title` = его имя. Откуда оно родилось, задаёт связь `branch derived_from <событие>`; без неё направление растёт от старта.
+- `problem` — то, что мешает. Открыта, пока на неё не ведёт `answers`.
+- `experiment` — проверка как событие. Подробности, если есть, лежат в `research`, связанном с ним.
+
+Поле `branch` (необязательное) — id направления того же проекта, в котором случилось событие. Без поля событие на основной линии. Направление внутри направления не вкладывается: вложенность задаёт только точка рождения.
 
 Вопрос — это Update с `type: question`. Он открыт, пока на него не ведёт ни одна связь `answers`.
 
 Прошлое не переписывается. Исправление — это новый Update со связью `supersedes` на старый.
 
-`status` (`active | paused | done | dropped`) — необязательное поле. Оно означает, в каком состоянии проект после этого события.
+`status` (`active | paused | done | dropped`) — необязательное поле. Оно означает, в каком состоянии проект после этого события. У `branch` и у событий с полем `branch` это статус направления, а не проекта.
 
 ### Чего в источнике нет намеренно
 
@@ -55,7 +62,8 @@
 - **последняя активность**;
 - **фокус на главной** — активные проекты с самой свежей активностью;
 - **обложка проекта** (`ProjectCard.cover`) — самое свежее изображение среди его artifact;
-- **упоминания в манге** (`ProjectView.manga`) — хотспоты, которые указывают на проект или его объекты.
+- **упоминания в манге** (`ProjectView.manga`) — хотспоты, которые указывают на проект или его объекты;
+- **Evolution Map** (`evolution()`): позвоночник из вех, текущее состояние (последняя веха), статус направления (`dropped` → dead, `paused` → paused, `done` → merged, если на него ссылается следующая веха, иначе done; без статуса и с тупиком в конце → dead; иначе active), точка слияния, линзы Journey / Now / Why / Next как списки id.
 
 Геометрии раскладки, зума и Now-координат тоже нет. Это дело Evolution Map. Исключение — `region` кадра: это геометрия самого рисунка, а не проекции.
 
@@ -80,7 +88,7 @@ chapter { number, title, summary?, date?, pages: [ { image?, panels: [ { region?
 
 Правила:
 
-- `answers` ведёт только в question;
+- `answers` ведёт только в question или problem;
 - `supersedes` связывает объекты одного вида;
 - связь не может указывать сама на себя.
 
@@ -154,7 +162,8 @@ write(store, { base: N, ops }) → { revision: N + 1 }
 | `GET /activity?project&type&before&limit` | `ActivityView`, курсорная пагинация | Activity |
 | `GET /manga`, `GET /manga/:key` | `ChapterCard[]`, `ChapterView`: хотспоты уже с карточками целей, prev/next | ридер |
 | `GET /resolve/:kind/:key` | `Card` любого объекта | превью хотспота, ссылки |
-| `GET /graph`, `GET /graph/:key` | `GraphView`: узлы-карточки и связи без геометрии | Evolution Map |
+| `GET /graph`, `GET /graph/:key` | `GraphView`: узлы-карточки и связи без геометрии | общий граф |
+| `GET /evolution/:key` | `EvolutionView`: вехи, направления со статусом, рождением и слиянием, события, связи, линзы. Без координат | Evolution Map |
 | `GET /source`, `GET /source/:id` | весь источник, включая draft | автор, Bearer |
 | `POST /source` | `{ base, ops }` → `{ revision }` | автор, Bearer |
 | `PUT /media?key=…` | байты → `{ ref }` | автор, Bearer |
