@@ -1,5 +1,6 @@
 import { isUrl, keyOf, kindOf, type Card, type Id, type Lang } from '$contracts';
 import { media } from '$lib/data';
+import { base } from '$app/paths';
 
 /** The one place that maps ids to routes. Pages never build object URLs themselves. */
 export function href(target: Card | Id, lang: Lang): string {
@@ -8,15 +9,15 @@ export function href(target: Card | Id, lang: Lang): string {
 	const key = keyOf(id);
 	switch (kindOf(id)) {
 		case 'project':
-			return `/${lang}/projects/${key}/`;
+			return `${base}/${lang}/projects/${key}/`;
 		case 'chapter':
-			return `/${lang}/manga/${key}/`;
+			return `${base}/${lang}/manga/${key}/`;
 		case 'update':
 		case 'research':
 			// Lives on its project's page; a life event (no project) lives in the activity feed.
-			return card?.project ? `/${lang}/projects/${keyOf(card.project)}/#${id}` : `/${lang}/activity/#${id}`;
+			return card?.project ? `${base}/${lang}/projects/${keyOf(card.project)}/#${id}` : `${base}/${lang}/activity/#${id}`;
 		case 'artifact':
-			return card?.ref ? media(card.ref) : `/${lang}/activity/`;
+			return card?.ref ? media(card.ref) : `${base}/${lang}/activity/`;
 	}
 }
 

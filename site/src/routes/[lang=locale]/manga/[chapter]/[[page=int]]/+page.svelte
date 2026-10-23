@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { base as root } from '$app/paths';
 	import { pick } from '$contracts';
 	import { media } from '$lib/data';
 	import { ui } from '$lib/i18n/ui';
@@ -36,7 +37,7 @@
 
 <main class="reader">
 	<p class="small muted">
-		<a href="/{l}/manga/">{ui('manga', l)}</a> · <T text={c.title} lang={l} /> · {ui('page', l)} {data.page}/{c.pages.length}
+		<a href="{root}/{l}/manga/">{ui('manga', l)}</a> · <T text={c.title} lang={l} /> · {ui('page', l)} {data.page}/{c.pages.length}
 	</p>
 	{#if data.page === 1 && c.summary}<p class="small muted"><T text={c.summary} lang={l} /></p>{/if}
 

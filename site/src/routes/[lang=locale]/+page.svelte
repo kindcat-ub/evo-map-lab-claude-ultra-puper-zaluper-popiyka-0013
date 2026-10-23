@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import { ui, type UiKey } from '$lib/i18n/ui';
 	import { href } from '$lib/links';
 	import { media } from '$lib/data';
@@ -38,7 +39,7 @@
 	<div class="row between"><h2>{ui('ways', l)}</h2><span class="small muted caps">{ui('ways_note', l)}</span></div>
 	<div class="grid">
 		{#each ways as w}
-			<a class="card way" href="/{l}/{w.path}/">
+			<a class="card way" href="{base}/{l}/{w.path}/">
 				<span class="title">{ui(w.key, l)}</span>
 				<span class="small muted">{ui(`way.${w.key}` as UiKey, l)}</span>
 				{#if w.key === 'manga' && v.latestChapter}<span class="small"><T text={v.latestChapter.title} lang={l} /> →</span>{/if}
@@ -48,7 +49,7 @@
 
 	<div class="grid two">
 		<section>
-			<div class="row between"><h2>{ui('recent_activity', l)}</h2><a class="small muted" href="/{l}/activity/">{ui('all_activity', l)} →</a></div>
+			<div class="row between"><h2>{ui('recent_activity', l)}</h2><a class="small muted" href="{base}/{l}/activity/">{ui('all_activity', l)} →</a></div>
 			<UpdateList items={v.recent} lang={l} />
 		</section>
 		<section>
