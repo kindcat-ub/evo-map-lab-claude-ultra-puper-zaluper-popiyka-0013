@@ -1,0 +1,24 @@
+{
+  "name": "@lastdrop/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Last Drop: модель источника, валидатор, порт хранилища, проекции и HTTP-контракт",
+  "exports": {
+    ".": "./src/index.ts",
+    "./fs-store": "./src/fs-store.ts",
+    "./server": "./src/server.ts"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "validate": "node src/cli.ts validate",
+    "export": "node src/cli.ts export",
+    "serve": "node src/cli.ts serve"
+  },
+  "engines": { "node": ">=22.18" },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.0"
+  }
+}
