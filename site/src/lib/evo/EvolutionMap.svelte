@@ -103,14 +103,17 @@
 
 	// ---------- подписи ----------
 	function wrap(s: string, n = 22): string[] {
-		const words = s.split(/\s+/);
-		const lines: string[] = [''];
-		for (const w of words) {
-			if ((lines.at(-1)! + ' ' + w).trim().length > n) {
-				if (lines.length === 2) { lines[1] = lines[1].replace(/\s*\S*$/, '') + '…'; return lines; }
-				lines.push(w);
-			} else lines[lines.length - 1] = (lines.at(-1)! + ' ' + w).trim();
+		// Две строки по n знаков, слова не рвём, хвост обрезаем многоточием.
+		const lines: string[] = [];
+		let rest = s.trim();
+		while (rest && lines.length < 2) {
+			if (rest.length <= n) { lines.push(rest); rest = ''; break; }
+			let cut = rest.lastIndexOf(' ', n);
+			if (cut <= 0) cut = n;
+			lines.push(rest.slice(0, cut).trim());
+			rest = rest.slice(cut).trim();
 		}
+		if (rest) lines[1] = (lines[1].length > n - 1 ? lines[1].slice(0, n - 1) : lines[1]) + '…';
 		return lines;
 	}
 	const short = (s: string) => { const w = wrap(s, 18); return w[0] + (w.length > 1 && !w[0].endsWith('…') ? '…' : ''); };
