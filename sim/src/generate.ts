@@ -212,6 +212,7 @@ export function generate(opts: GenerateOptions): GenerateResult {
     [mergeSrc, [{ type: "decision" }, { type: "breakage", flag: "known-cause" }]],
   ]);
 
+  const usedQuestions = new Set<Pair>();
   function genArc(p: ProjectDraft) {
     const r = rWorld.fork(`arc/${p.slug}`);
     const t = rText.fork(`arc/${p.slug}`);
@@ -229,7 +230,10 @@ export function generate(opts: GenerateOptions): GenerateResult {
     const openQs: UpdateDraft[] = [];
     let lastAnchor: UpdateDraft;
 
-    const oq = r.pick(a.questions);
+    // Projects of one archetype never share a founding question.
+    const fresh = a.questions.filter((x) => !usedQuestions.has(x));
+    const oq = r.pick(fresh.length ? fresh : a.questions);
+    usedQuestions.add(oq);
     p.question = push({ type: "question", day: p.start, title: l(oq), summary: { ru: `Вопрос, с которого всё началось: ${oq[0]}`, en: `The question it all started with: ${oq[1]}` } });
     openQs.push(p.question);
     lastAnchor = push({

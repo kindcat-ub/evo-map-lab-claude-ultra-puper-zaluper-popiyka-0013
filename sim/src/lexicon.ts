@@ -34,7 +34,7 @@ export const ARCHETYPES: Archetype[] = [
     ],
     milestones: [["первая плата ожила", "first board boots"], ["приём на улице", "outdoor reception works"], ["неделя на одном заряде", "a week on one charge"]],
     release: "photo",
-    questions: [["Можно ли слушать эфир, не таская с собой ноутбук?", "Can one listen to the air without carrying a laptop?"]],
+    questions: [["Можно ли слушать эфир, не таская с собой ноутбук?", "Can one listen to the air without carrying a laptop?"], ["Сколько проживёт приёмник в лесу без розетки?", "How long can a receiver live in the woods without a socket?"], ["Можно ли сделать прибор, который не страшно уронить?", "Can a device be made that is not scary to drop?"]],
   },
   {
     key: "tool",
@@ -48,7 +48,7 @@ export const ARCHETYPES: Archetype[] = [
     ],
     milestones: [["первая заметка нашлась поиском", "first note found by search"], ["синхронизация двух машин", "two machines in sync"], ["тысяча заметок без тормозов", "a thousand notes, no lag"]],
     release: "diagram",
-    questions: [["Почему старые заметки невозможно найти, когда они нужны?", "Why are old notes impossible to find when they matter?"]],
+    questions: [["Почему старые заметки невозможно найти, когда они нужны?", "Why are old notes impossible to find when they matter?"], ["Можно ли записывать мысли так же быстро, как они приходят?", "Can thoughts be written down as fast as they come?"], ["Что останется от заметок, если сервис закроется?", "What is left of the notes if the service shuts down?"]],
   },
   {
     key: "album",
@@ -62,7 +62,7 @@ export const ARCHETYPES: Archetype[] = [
     ],
     milestones: [["первый трек сведён", "first track mixed"], ["демо на четыре трека", "four-track demo"], ["финальный порядок треков", "final track order"]],
     release: "audio",
-    questions: [["Как звучит город в четыре утра?", "What does a city sound like at 4 am?"]],
+    questions: [["Как звучит город в четыре утра?", "What does a city sound like at 4 am?"], ["Можно ли записать альбом за одну зиму?", "Can an album be recorded in a single winter?"], ["Как звучит пустая квартира?", "What does an empty flat sound like?"]],
   },
   {
     key: "game",
@@ -76,7 +76,7 @@ export const ARCHETYPES: Archetype[] = [
     ],
     milestones: [["играбельный прототип", "playable prototype"], ["первый внешний тест", "first outside playtest"], ["вертикальный срез", "vertical slice"]],
     release: "photo",
-    questions: [["Может ли игра научить терпению, не наказывая?", "Can a game teach patience without punishing?"]],
+    questions: [["Может ли игра научить терпению, не наказывая?", "Can a game teach patience without punishing?"], ["Можно ли сделать игру без единого слова?", "Can a game be made without a single word?"], ["Что, если проигрыш будет интереснее победы?", "What if losing were more interesting than winning?"]],
   },
   {
     key: "study",
@@ -89,7 +89,7 @@ export const ARCHETYPES: Archetype[] = [
     ],
     milestones: [["первые сто записей", "first hundred records"], ["первый устойчивый эффект", "first stable effect"], ["отчёт для себя", "a write-up for myself"]],
     release: "doc",
-    questions: [["Влияет ли время суток на качество решений?", "Does time of day change how well one decides?"]],
+    questions: [["Влияет ли время суток на качество решений?", "Does time of day change how well one decides?"], ["Предсказывает ли сон продуктивность следующего дня?", "Does sleep predict the next day's output?"], ["Сколько данных нужно, чтобы перестать себе врать?", "How much data does it take to stop lying to oneself?"]],
   },
   {
     key: "installation",
@@ -103,7 +103,7 @@ export const ARCHETYPES: Archetype[] = [
     ],
     milestones: [["первый свет в темноте", "first light in the dark"], ["полный цикл сценария", "full sequence cycle"], ["показ для друзей", "showing for friends"]],
     release: "photo",
-    questions: [["Может ли комната отвечать на присутствие, а не на движение?", "Can a room respond to presence rather than motion?"]],
+    questions: [["Может ли комната отвечать на присутствие, а не на движение?", "Can a room respond to presence rather than motion?"], ["Можно ли нарисовать светом тишину?", "Can silence be drawn with light?"], ["Как заставить людей задержаться у стены?", "How to make people linger by a wall?"]],
   },
 ];
 
