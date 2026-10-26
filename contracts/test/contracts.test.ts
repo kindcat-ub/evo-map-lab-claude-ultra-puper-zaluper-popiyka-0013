@@ -8,7 +8,7 @@ import { activity, chapter, graph, home, mediaUrl, pick, project, publicView, re
 import { ConflictError, MemoryStore, write } from '../src/store.ts';
 import { ValidationError } from '../src/validate.ts';
 import { FsStore } from '../src/fs-store.ts';
-import { exportStatic, readRoute } from '../src/server.ts';
+import { createApiServer, exportStatic, readRoute } from '../src/server.ts';
 import { fixture } from './fixture.ts';
 
 const h0 = (s: Parameters<typeof home>[0]) => home(s);
@@ -135,4 +135,29 @@ test('pick и mediaUrl', () => {
   assert.deepEqual(pick({ en: 'x' }, 'ru'), { text: 'x', lang: 'en' });
   assert.equal(mediaUrl('media/a.jpg', 'https://cdn.example/'), 'https://cdn.example/media/a.jpg');
   assert.equal(mediaUrl('https://x.org/a', 'https://cdn.example'), 'https://x.org/a');
+});
+
+test('HTTP: публичное чтение с CORS, пути автора без него', async () => {
+  const server = createApiServer({ store: new MemoryStore(fixture()), token: 't', cors: 'https://site.example' });
+  await new Promise<void>((ok) => server.listen(0, '127.0.0.1', ok));
+  const { port } = server.address() as { port: number };
+  const base = `http://127.0.0.1:${port}/api/v1`;
+  try {
+    const home = await fetch(`${base}/home`);
+    assert.equal(home.status, 200);
+    assert.equal(home.headers.get('access-control-allow-origin'), 'https://site.example');
+    assert.match(home.headers.get('access-control-expose-headers') ?? '', /etag/);
+    const pre = await fetch(`${base}/projects`, { method: 'OPTIONS' });
+    assert.equal(pre.status, 204);
+    assert.equal(pre.headers.get('access-control-allow-methods'), 'GET');
+    const etag = home.headers.get('etag')!;
+    const same = await fetch(`${base}/home`, { headers: { 'if-none-match': etag } });
+    assert.equal(same.status, 304);
+    assert.equal(same.headers.get('access-control-allow-origin'), 'https://site.example');
+    const src = await fetch(`${base}/source`, { headers: { authorization: 'Bearer t' } });
+    assert.equal(src.status, 200);
+    assert.equal(src.headers.get('access-control-allow-origin'), null);
+  } finally {
+    await new Promise((ok) => server.close(ok));
+  }
 });

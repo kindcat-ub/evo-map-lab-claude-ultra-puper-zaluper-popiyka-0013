@@ -66,6 +66,18 @@ test('evolution: вехи, статусы направлений, рождени
   assert.equal(project(publicView(world()), 'project:kite')!.status, 'paused');
 });
 
+test('статус скрытого направления не становится статусом проекта', () => {
+  const s = world();
+  s.entities.push({ id: 'update:hidden-x', visibility: 'published', date: '2025-03-05', project: 'project:kite', type: 'deadend', branch: 'update:hidden', status: 'dropped', title: { ru: 'x' } } as Entity);
+  assert.deepEqual(validateSnapshot(s), []);
+  const pub = publicView(s);
+  const x = pub.entities.find((e) => e.id === 'update:hidden-x') as unknown as Record<string, unknown>;
+  assert.equal(x.branch, undefined);
+  assert.equal(x.status, undefined);
+  assert.equal(project(pub, 'project:kite')!.status, 'paused');
+  assert.equal(evolution(pub, 'project:kite')!.status, 'paused');
+});
+
 test('линзы — проекция, а не хранимые данные', () => {
   const v = evolution(publicView(world()), 'project:kite')!;
   const sec = (l: keyof typeof v.lenses, k: string) => v.lenses[l].sections.find((x) => x.key === k)!.items;

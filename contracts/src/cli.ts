@@ -29,7 +29,7 @@ if (cmd === 'export') {
   console.log(`выгружено ${files.length} файлов в ${arg}`);
 } else if (cmd === 'serve') {
   const port = Number(arg ?? 8787);
-  createApiServer({ store, blobs: new FsBlobStore(dir), token: process.env.LASTDROP_TOKEN }).listen(port, () =>
+  createApiServer({ store, blobs: new FsBlobStore(dir), token: process.env.LASTDROP_TOKEN, cors: process.env.LASTDROP_CORS_ORIGIN }).listen(port, () =>
     console.log(`http://localhost:${port}/api/v1/home  (запись ${process.env.LASTDROP_TOKEN ? 'включена' : 'выключена'})`));
 } else {
   console.error(`неизвестная команда ${cmd}`);
