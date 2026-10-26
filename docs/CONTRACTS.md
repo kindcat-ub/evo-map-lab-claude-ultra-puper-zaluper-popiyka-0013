@@ -170,6 +170,7 @@ write(store, { base: N, ops }) → { revision: N + 1 }
 
 - Все публичные ответы строятся по `publicView`: draft туда не попадает физически.
 - Live-ответы помечаются `ETag: "r<ревизия>"`.
+- Публичное чтение отдаёт CORS (`Access-Control-Allow-Origin`, по умолчанию `*`, задаётся `LASTDROP_CORS_ORIGIN`), чтобы сайт на другом домене читал live API из браузера. Пути автора CORS не получают.
 - Тексты отдаются на обоих языках. Язык выбирает фронт через `pick(text, lang)`: если нужного языка нет, отдаётся другой с честной пометкой.
 
 ## Как этим пользоваться
@@ -179,7 +180,7 @@ cd contracts && npm i
 npm test                                   # контракт на выдуманном мире
 node src/cli.ts validate <папка-источник>  # генератор гоняет свой вывод через это
 node src/cli.ts export <папка> <out>       # статика для сайта
-LASTDROP_TOKEN=… node src/cli.ts serve <папка> 8787
+LASTDROP_TOKEN=… node src/cli.ts serve <папка> 8787   # LASTDROP_CORS_ORIGIN=https://сайт — вместо *
 ```
 
 TypeScript без рантайм-зависимостей. Node ≥ 22.18 запускает `.ts` напрямую, Vite и SvelteKit импортируют `contracts/src/index.ts` как есть. Адаптеры на `node:fs` и `node:http` лежат отдельно, в браузерный бандл они не попадают.

@@ -78,9 +78,20 @@ export interface ServerOptions {
   blobs?: BlobStore;
   /** Без токена запись выключена. */
   token?: string | undefined;
+  /**
+   * Access-Control-Allow-Origin для публичного чтения: сайт на другом домене читает API из браузера
+   * при клиентской навигации. По умолчанию `*`, публичные ответы и так публичны.
+   * Пути автора (/source, /media) CORS не получают: из чужого origin браузер туда не пишет.
+   */
+  cors?: string | undefined;
 }
 
-export function createApiServer({ store, blobs, token }: ServerOptions): Server {
+export function createApiServer({ store, blobs, token, cors = '*' }: ServerOptions): Server {
+  const corsHeaders: Record<string, string> = {
+    'access-control-allow-origin': cors,
+    'access-control-expose-headers': 'etag',
+    ...(cors === '*' ? {} : { vary: 'origin' }),
+  };
   let cache: { revision: number; pub: Snapshot } | undefined;
   const pub = async () => {
     const s = await store.load();
@@ -130,11 +141,15 @@ export function createApiServer({ store, blobs, token }: ServerOptions): Server 
         return send(notFound(path));
       }
 
-      if (req.method !== 'GET') return send(notFound(path));
+      if (req.method === 'OPTIONS') {
+        res.writeHead(204, { ...corsHeaders, 'access-control-allow-methods': 'GET', 'access-control-allow-headers': 'if-none-match', 'access-control-max-age': '86400' });
+        return res.end();
+      }
+      if (req.method !== 'GET') return send(notFound(path), corsHeaders);
       const p = await pub();
       const etag = `"r${p.revision}"`;
-      if (req.headers['if-none-match'] === etag) { res.writeHead(304, { etag }); return res.end(); }
-      send(readRoute(p, path, url.searchParams), { etag });
+      if (req.headers['if-none-match'] === etag) { res.writeHead(304, { etag, ...corsHeaders }); return res.end(); }
+      send(readRoute(p, path, url.searchParams), { etag, ...corsHeaders });
     } catch (e) {
       send({ status: 500, body: { error: 'bad_request', message: (e as Error).message } });
     }

@@ -166,8 +166,9 @@ export function publicView(s: Snapshot): Snapshot {
       const { question: _, ...rest } = e;
       entities.push(rest as Project);
     } else if (is(e, 'update') && e.branch && !visible(e.branch)) {
-      // Скрытое направление: событие остаётся на основной линии.
-      const { branch: _, ...rest } = e;
+      // Скрытое направление: событие остаётся на основной линии, но без status.
+      // Это был статус направления; на основной линии он стал бы статусом проекта.
+      const { branch: _, status: __, ...rest } = e;
       entities.push(rest as Update);
     } else if (is(e, 'chapter')) {
       entities.push({
